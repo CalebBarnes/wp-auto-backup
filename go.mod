@@ -1,4 +1,4 @@
-module github.com/Jambaree/wpe-backup-cloner
+module github.com/CalebBarnes/wp-auto-backup
 
 go 1.21.5
 

@@ -17,7 +17,7 @@ import (
 
 var service *drive.Service
 
-func InitDriveService() {
+func initDriveService() {
 	// Read the JSON key file of your service account
 	ctx := context.Background()
 	serviceAccountKeyFile := os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE")
@@ -47,7 +47,7 @@ type UploadFileOptions struct {
 func UploadFile(options UploadFileOptions) error {
 	fmt.Println("☁️ Uploading file to Google Drive...")
 	if service == nil {
-		InitDriveService()
+		initDriveService()
 	}
 	// Open the file
 	localFile, err := os.Open(options.Filepath)
@@ -88,7 +88,7 @@ type UploadBufferOptions struct {
 
 func UploadBuffer(options UploadBufferOptions) error {
 	if service == nil {
-		InitDriveService()
+		initDriveService()
 	}
 
 	// Detect the content type of the file

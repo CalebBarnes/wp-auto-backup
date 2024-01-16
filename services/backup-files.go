@@ -2,9 +2,10 @@ package backupService
 
 import (
 	"fmt"
+	"log"
 	"os"
 
-	utils "github.com/Jambaree/wpe-backup-cloner/utils"
+	utils "github.com/CalebBarnes/wp-auto-backup/utils"
 )
 
 type BackupFilesOptions struct {
@@ -19,6 +20,16 @@ func BackupFiles(options BackupFilesOptions, timestamp string) {
 		fmt.Println("Zip destination directory is required")
 		return
 	}
+	// check if zip destination dir exists, if not create it
+	if _, err := os.Stat(options.ZipDestinationDir); os.IsNotExist(err) {
+		fmt.Println("Creating destination directory: " + options.ZipDestinationDir)
+		err := os.MkdirAll(options.ZipDestinationDir, 0755)
+		if err != nil {
+			log.Fatalf("Error creating destination directory: %v", err)
+			return
+		}
+	}
+
 	fmt.Println("🗂️ Starting file backup...")
 	err := utils.RsyncFromServer(utils.RsyncOptions{
 		User:           options.User,

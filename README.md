@@ -1,6 +1,8 @@
-# WP Auto Backups
+# WP Auto Backup
 
-This Go-based tool schedules jobs to clone WordPress (WP) server backups to an external storage location. It's designed to work with any WP server that has the WP CLI installed, and it assumes that the server running this Go project has an SSH key added to the WP server for secure communication.
+Go-powered tool for scheduling WordPress server & database backups to Google Drive.
+
+WP Auto Backup is designed to work with any WP server that has the WP CLI installed, and it assumes that the server running this Go project has an SSH key added to the WP server for secure communication.
 
 ## Environment Variables
 

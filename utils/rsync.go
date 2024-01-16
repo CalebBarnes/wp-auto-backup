@@ -28,6 +28,16 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 		options.DestinationDir = "temp_files"
 	}
 
+	// check if destination dir exists, if not create it
+	if _, err := os.Stat(options.DestinationDir); os.IsNotExist(err) {
+		fmt.Println("Creating destination directory: " + options.DestinationDir)
+		err := os.MkdirAll(options.DestinationDir, 0755)
+		if err != nil {
+			log.Fatalf("Error creating destination directory: %v", err)
+			return err
+		}
+	}
+
 	rsyncCommand := "rsync"
 	rsyncArgs := []string{
 		"-azL", // archive, compress, and dereference symlinks (copy the actual files instead of symlinks)
