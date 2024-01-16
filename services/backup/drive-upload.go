@@ -16,15 +16,11 @@ type UploadFileOptions struct {
 	Filepath string
 }
 
-func UploadFile(options UploadFileOptions) (*drive.File, error) {
-	if os.Getenv("VERBOSE") == "true" {
-		fmt.Println("☁️ Uploading file to Google Drive...")
-	}
+func UploadFileInSiteFolder(options UploadFileOptions) (*drive.File, error) {
 	service, err := initDriveService()
 	if err != nil {
 		return nil, fmt.Errorf("unable to init drive service: %v", err)
 	}
-
 	folderID, err := getFolderID(service, os.Getenv("SITE_NAME"), options.FolderId)
 	if err != nil {
 		return nil, err
@@ -35,10 +31,27 @@ func UploadFile(options UploadFileOptions) (*drive.File, error) {
 			return nil, err
 		}
 	}
+	if os.Getenv("VERBOSE") == "true" {
+		fmt.Println("📁 Site Folder ID:", folderID)
+	}
+
+	return UploadFile(UploadFileOptions{
+		FolderId: folderID,
+		Filepath: options.Filepath,
+	})
+}
+
+func UploadFile(options UploadFileOptions) (*drive.File, error) {
+	if os.Getenv("VERBOSE") == "true" {
+		fmt.Println("☁️ Uploading file to Google Drive...")
+	}
+	service, err := initDriveService()
+	if err != nil {
+		return nil, fmt.Errorf("unable to init drive service: %v", err)
+	}
 
 	if os.Getenv("VERBOSE") == "true" {
 		fmt.Println("📁 Parent Folder ID:", options.FolderId)
-		fmt.Println("📁 Site Folder ID:", folderID)
 		fmt.Println("📄 Filepath:", options.Filepath)
 	}
 
@@ -62,7 +75,7 @@ func UploadFile(options UploadFileOptions) (*drive.File, error) {
 	// Create a file on Google Drive
 	driveFile := &drive.File{
 		Name:    filename,
-		Parents: []string{folderID},
+		Parents: []string{options.FolderId},
 	}
 	uploadedFile, err := service.Files.Create(driveFile).Media(localFile, googleapi.ContentType(contentType)).Do()
 	if err != nil {
@@ -73,6 +86,32 @@ func UploadFile(options UploadFileOptions) (*drive.File, error) {
 		fmt.Printf("✅ File '%s' uploaded with ID: %s\n", filename, uploadedFile.Id)
 	}
 	return uploadedFile, nil
+}
+
+func UploadBufferInSiteFolder(options UploadBufferOptions) (*drive.File, error) {
+	service, err := initDriveService()
+	if err != nil {
+		return nil, fmt.Errorf("unable to init drive service: %v", err)
+	}
+	folderID, err := getFolderID(service, os.Getenv("SITE_NAME"), options.FolderId)
+	if err != nil {
+		return nil, err
+	}
+	if folderID == "" {
+		folderID, err = createFolder(service, os.Getenv("SITE_NAME"), options.FolderId)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if os.Getenv("VERBOSE") == "true" {
+		fmt.Println("📁 Site Folder ID:", folderID)
+	}
+
+	return UploadBuffer(UploadBufferOptions{
+		FolderId: folderID,
+		Filename: options.Filename,
+		Buffer:   options.Buffer,
+	})
 }
 
 type UploadBufferOptions struct {
@@ -87,20 +126,8 @@ func UploadBuffer(options UploadBufferOptions) (*drive.File, error) {
 		return nil, fmt.Errorf("unable to init drive service: %v", err)
 	}
 
-	folderID, err := getFolderID(service, os.Getenv("SITE_NAME"), options.FolderId)
-	if err != nil {
-		return nil, err
-	}
-	if folderID == "" {
-		folderID, err = createFolder(service, os.Getenv("SITE_NAME"), options.FolderId)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	if os.Getenv("VERBOSE") == "true" {
 		fmt.Println("📁 Parent Folder ID:", options.FolderId)
-		fmt.Println("📁 Site Folder ID:", folderID)
 		fmt.Println("📄 Filename:", options.Filename)
 	}
 
@@ -114,7 +141,7 @@ func UploadBuffer(options UploadBufferOptions) (*drive.File, error) {
 	// Create a file on Google Drive
 	driveFile := &drive.File{
 		Name:    options.Filename,
-		Parents: []string{folderID},
+		Parents: []string{options.FolderId},
 	}
 	file, err := service.Files.Create(driveFile).Media(bytes.NewReader(options.Buffer.Bytes()), googleapi.ContentType(contentType)).Do()
 	if err != nil {

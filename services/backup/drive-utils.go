@@ -2,9 +2,43 @@ package backupService
 
 import (
 	"fmt"
+	"os"
 
 	"google.golang.org/api/drive/v3"
 )
+
+func UploadReadme(folderId string) (bool, error) {
+	service, err := initDriveService()
+	if err != nil {
+		return false, fmt.Errorf("failed to initialize drive service: %v", err)
+	}
+	query := fmt.Sprintf("name='readme.txt' and '%s' in parents", folderId)
+
+	response, err := service.Files.List().Q(query).Do()
+	if err != nil {
+		return false, fmt.Errorf("failed to query file: %v", err)
+	}
+
+	for _, file := range response.Files {
+		if file.Name == "readme.txt" {
+			return true, nil // Return true if readme.txt exists
+		}
+	}
+
+	// readme.txt does not exist, so create it
+	createdFile, err := UploadFile(UploadFileOptions{
+		FolderId: folderId,
+		Filepath: "example/readme.txt",
+	})
+
+	if err != nil {
+		return false, fmt.Errorf("failed to upload file: %v", err)
+	}
+	if os.Getenv("VERBOSE") == "true" {
+		fmt.Printf("Created file %s (%s)\n", createdFile.Name, createdFile.Id)
+	}
+	return false, nil // readme.txt does not exist
+}
 
 func getFolderID(service *drive.Service, folderName string, parentFolderId string) (string, error) {
 	var query string

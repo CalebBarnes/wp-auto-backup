@@ -56,6 +56,10 @@ func main() {
 	fmt.Println("- Connecting to \033[4m" + os.Getenv("SSH_USER") + "@" + os.Getenv("SSH_HOST") + "\033[0m")
 	fmt.Println("")
 
+	if os.Getenv("GOOGLE_DRIVE_FOLDER_ID") != "" {
+		backupService.UploadReadme(os.Getenv("GOOGLE_DRIVE_FOLDER_ID"))
+	}
+
 	if os.Getenv("BACKUP_ON_START") == "true" {
 		runJob()
 	}

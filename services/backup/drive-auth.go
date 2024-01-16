@@ -16,8 +16,6 @@ import (
 func initDriveService() (*drive.Service, error) {
 	ctx := context.Background()
 
-	// ******* START Authenticate using oauth2 *******
-
 	// Read the OAuth 2.0 credentials file
 	b, err := os.ReadFile(os.Getenv("GOOGLE_CLIENT_SECRET_JSON_FILE"))
 	if err != nil {
@@ -46,31 +44,6 @@ func initDriveService() (*drive.Service, error) {
 		log.Fatalf("Unable to retrieve Drive client: %v", err)
 		return nil, err
 	}
-
-	// ******* END Authenticate using oauth2 *******
-
-	// ******* START Authenticate using the service account *******
-	// serviceAccountKeyFile := os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY_FILE")
-	// b, err := os.ReadFile(serviceAccountKeyFile)
-	// if err != nil {
-	// 	log.Fatalf("Unable to read service account key file: %v", err)
-	// 	return nil, err
-	// }
-
-	// Authenticate using the service account
-	// driveConfig, err := google.JWTConfigFromJSON(b, drive.DriveScope)
-	// if err != nil {
-	// 	log.Fatalf("Unable to parse service account key file to config: %v", err)
-	// 	return nil, err
-	// }
-	// client := driveConfig.Client(ctx)
-
-	// service, err := drive.NewService(ctx, option.WithHTTPClient(client))
-	// if err != nil {
-	// 	log.Fatalf("Unable to retrieve Drive client: %v", err)
-	// 	return nil, err
-	// }
-	// ******* END Authenticate using the service account *******
 
 	return service, nil
 }

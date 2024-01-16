@@ -59,7 +59,7 @@ func BackupFiles(options BackupFilesOptions, timestamp string) {
 	}
 
 	fmt.Println("📤 Uploading ZIP file to Google Drive...")
-	uploadedFile, err := UploadFile(UploadFileOptions{
+	uploadedFile, err := UploadFileInSiteFolder(UploadFileOptions{
 		FolderId: os.Getenv("GOOGLE_DRIVE_FOLDER_ID"),
 		Filepath: zipFilePath,
 	})
