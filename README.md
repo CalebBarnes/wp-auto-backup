@@ -1,7 +1,6 @@
 # WP Auto Backup
 
-![wp-auto-backup-logo-512-512](https://github.com/CalebBarnes/wp-auto-backup/assets/24890515/ef552b3a-0001-46b0-80dd-796a152a44ce)
-
+![wp-auto-backup-logo-256x256](https://github.com/CalebBarnes/wp-auto-backup/assets/24890515/2fa9242e-20f2-461b-be54-1b7138fc2840)
 
 Go-powered tool for scheduling WordPress server & database backups to Google Drive.
 
