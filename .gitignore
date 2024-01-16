@@ -17,3 +17,10 @@ tmp
 *.env*
 
 jambaree-wp-backup-cloner-89bb85e0ebf8.json
+token.json
+temp_files
+temp_files/**
+temp_files/*
+**/temp_files/**
+ssh
+backups/**
