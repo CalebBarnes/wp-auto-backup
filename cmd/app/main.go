@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	backupService "github.com/Jambaree/wpe-backup-cloner/services"
@@ -41,22 +42,23 @@ func main() {
 }
 
 func runJob() {
-	user := "realcedar"
-	host := "realcedar2dev.ssh.wpengine.net"
+	user := os.Getenv("SSH_USER")
+	host := os.Getenv("SSH_HOST")
+
 	currentTime := time.Now()
 	timestamp := currentTime.Format("2006-01-02-150405")
 	fmt.Println(timestamp)
 
+	backupService.BackupDatabase(backupService.BackupDatabaseOptions{
+		User: user,
+		Host: host,
+		Port: "22",
+	}, timestamp)
+
 	backupService.BackupFiles(backupService.BackupFilesOptions{
 		User:                   user,
 		Host:                   host,
-		DownloadDestinationDir: "temp_files/" + user,
+		DownloadDestinationDir: "temp_files/" + os.Getenv("SITE_NAME"),
 		ZipDestinationDir:      "backups",
 	}, timestamp)
-
-	// backupService.BackupDatabase(backupService.BackupDatabaseOptions{
-	// 	User: user,
-	// 	Host: host,
-	// 	Port: "22",
-	// }, timestamp)
 }

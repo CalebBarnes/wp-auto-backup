@@ -45,6 +45,7 @@ type UploadFileOptions struct {
 }
 
 func UploadFile(options UploadFileOptions) error {
+	fmt.Println("☁️ Uploading file to Google Drive...")
 	if service == nil {
 		InitDriveService()
 	}
@@ -75,7 +76,7 @@ func UploadFile(options UploadFileOptions) error {
 		return fmt.Errorf("unable to create file: %v", err)
 	}
 
-	fmt.Printf("File '%s' uploaded with ID: %s\n", filename, uploadedFile.Id)
+	fmt.Printf("✅ File '%s' uploaded with ID: %s\n", filename, uploadedFile.Id)
 	return nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/user"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -17,7 +18,21 @@ type BackupDatabaseOptions struct {
 
 func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 	fmt.Println("🗄️ Starting database backup...")
-	key, err := os.ReadFile("ssh/wpengine_rsa")
+
+	// Expand the tilde to the home directory path
+	homeDir, err := user.Current()
+	if err != nil {
+		log.Fatalf("unable to get current user home directory: %v", err)
+	}
+	keyPath := os.Getenv("SSH_KEY_PATH")
+	if keyPath == "" {
+		keyPath = "~/.ssh/id_rsa"
+	}
+	if keyPath[:2] == "~/" {
+		keyPath = homeDir.HomeDir + keyPath[1:]
+	}
+
+	key, err := os.ReadFile(keyPath)
 	if err != nil {
 		log.Fatalf("unable to read private key: %v", err)
 	}

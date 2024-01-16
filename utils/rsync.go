@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 )
 
 type RsyncOptions struct {
 	User           string
 	Host           string
-	SourceDir      string
 	DestinationDir string
 	Verbose        bool
 }
@@ -24,9 +24,6 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 	if options.Host == "" {
 		return errors.New("error: Host is required")
 	}
-	if options.SourceDir == "" {
-		options.SourceDir = "/sites/" + options.User
-	}
 	if options.DestinationDir == "" {
 		options.DestinationDir = "temp_files"
 	}
@@ -35,13 +32,13 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 	rsyncArgs := []string{
 		"-azL", // archive, compress, and dereference symlinks (copy the actual files instead of symlinks)
 		"--progress",
-		"-e", "ssh -i ssh/wpengine_rsa",
-		options.User + "@" + options.Host + ":" + options.SourceDir,
+		"-e", "ssh",
+		options.User + "@" + options.Host + ":" + os.Getenv("REMOTE_SITE_DIR"),
 		options.DestinationDir,
 	}
 	cmd := exec.Command(rsyncCommand, rsyncArgs...)
 
-	fmt.Println("Executing command:", cmd.String())
+	// fmt.Println("Executing command:", cmd.String())
 
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {

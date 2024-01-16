@@ -11,7 +11,6 @@ type BackupFilesOptions struct {
 	User                   string
 	Host                   string
 	DownloadDestinationDir string
-	ServerSourceDir        string
 	ZipDestinationDir      string
 }
 
@@ -24,7 +23,6 @@ func BackupFiles(options BackupFilesOptions, timestamp string) {
 	err := utils.RsyncFromServer(utils.RsyncOptions{
 		User:           options.User,
 		Host:           options.Host,
-		SourceDir:      options.ServerSourceDir,
 		DestinationDir: options.DownloadDestinationDir,
 		Verbose:        os.Getenv("VERBOSE") == "true",
 	})
@@ -33,6 +31,11 @@ func BackupFiles(options BackupFilesOptions, timestamp string) {
 		return
 	}
 
-	zipFileName := fmt.Sprintf("%s/%s-wordpress-files-backup-%s.zip", options.ZipDestinationDir, options.User, timestamp)
+	zipFileName := fmt.Sprintf("%s/%s-wordpress-files-backup-%s.zip", options.ZipDestinationDir, os.Getenv("SITE_NAME"), timestamp)
 	utils.CreateZipFile(zipFileName, options.DownloadDestinationDir)
+
+	UploadFile(UploadFileOptions{
+		FolderId: os.Getenv("GOOGLE_DRIVE_FOLDER_ID"),
+		Filepath: zipFileName,
+	})
 }
