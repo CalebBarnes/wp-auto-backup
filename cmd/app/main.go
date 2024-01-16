@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	backupService "github.com/CalebBarnes/wp-auto-backup/services"
+	backupService "github.com/CalebBarnes/wp-auto-backup/services/backup"
 	"github.com/joho/godotenv"
 )
 
@@ -89,7 +89,6 @@ func main() {
 }
 
 func runJob() {
-
 	println("")
 	fmt.Println("🧙 Starting scheduled backup job at " + time.Now().Format("2006-01-02 15:04:05"))
 	println("")

@@ -75,13 +75,15 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 	fmt.Println("📤 Uploading database dump to Google Drive...")
 
 	fileName := fmt.Sprintf("%s-database-dump-%s.sql", options.User, timestamp)
-	if err := UploadBuffer(UploadBufferOptions{
+	_, err = UploadBuffer(UploadBufferOptions{
 		FolderId: os.Getenv("GOOGLE_DRIVE_FOLDER_ID"),
 		Filename: fileName,
 		Buffer:   &stdoutBuf,
-	}); err != nil {
+	})
+	if err != nil {
 		log.Fatalf("Unable to upload buffer content: %v", err)
 	}
+
 	fmt.Println("✅ Database dump file uploaded to Google Drive: " + fileName)
 	fmt.Println("")
 }
