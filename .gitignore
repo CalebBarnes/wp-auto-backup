@@ -27,3 +27,5 @@ ssh
 backups/**
 
 .DS_Store
+token.json
+**client_secret**
