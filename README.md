@@ -1,5 +1,8 @@
 # WP Auto Backup
 
+![wp-auto-backup-logo-512-512](https://github.com/CalebBarnes/wp-auto-backup/assets/24890515/ef552b3a-0001-46b0-80dd-796a152a44ce)
+
+
 Go-powered tool for scheduling WordPress server & database backups to Google Drive.
 
 WP Auto Backup is designed to work with any WP server that has the WP CLI installed and an SSH key added to the WP server for secure communication.
