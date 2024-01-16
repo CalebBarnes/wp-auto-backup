@@ -8,12 +8,13 @@ import (
 	"path/filepath"
 )
 
-func CreateZipFile(zipFileName string, sourceDir string) {
-	fmt.Println("🗜️ Creating ZIP file:", zipFileName)
+func CreateZipFile(zipFileName string, sourceDir string) (string, error) {
+	fmt.Println("\n🗜️ Creating ZIP file:", zipFileName)
+
 	zipFile, err := os.Create(zipFileName)
 	if err != nil {
 		fmt.Println("Failed to create zip file:", err)
-		return
+		return "", err
 	}
 	defer zipFile.Close()
 
@@ -60,7 +61,9 @@ func CreateZipFile(zipFileName string, sourceDir string) {
 	})
 	if err != nil {
 		fmt.Println("🙈 Failed to add files to zip:", err)
-		return
+		fmt.Println("")
+		return "", err
 	}
 	fmt.Println("✅ ZIP file created successfully:", zipFileName)
+	return zipFileName, nil
 }

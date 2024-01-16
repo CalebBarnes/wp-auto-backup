@@ -26,10 +26,10 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 	}
 	keyPath := os.Getenv("SSH_KEY_PATH")
 	if keyPath == "" {
-		keyPath = "~/.ssh/id_rsa"
+		keyPath = "~/.ssh/id_rsa" // set default
 	}
 	if keyPath[:2] == "~/" {
-		keyPath = homeDir.HomeDir + keyPath[1:]
+		keyPath = homeDir.HomeDir + keyPath[1:] // replace "~" with real home dir
 	}
 
 	key, err := os.ReadFile(keyPath)
@@ -56,7 +56,7 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 	}
 	defer conn.Close()
 
-	fmt.Println("Connected with SSH to " + options.Host + ":" + options.Port)
+	fmt.Println("🔐 Connected with SSH to " + options.Host + ":" + options.Port)
 
 	cmd := "wp db export -" // outputs the sql dump to stdout
 	sess, err := conn.NewSession()
@@ -72,11 +72,16 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 		log.Fatalf("failed to run command: %v", err)
 	}
 
+	fmt.Println("📤 Uploading database dump to Google Drive...")
+
+	fileName := fmt.Sprintf("%s-database-dump-%s.sql", options.User, timestamp)
 	if err := UploadBuffer(UploadBufferOptions{
 		FolderId: os.Getenv("GOOGLE_DRIVE_FOLDER_ID"),
-		Filename: fmt.Sprintf("%s-database-dump-%s.sql", options.User, timestamp),
+		Filename: fileName,
 		Buffer:   &stdoutBuf,
 	}); err != nil {
 		log.Fatalf("Unable to upload buffer content: %v", err)
 	}
+	fmt.Println("✅ Database dump file uploaded to Google Drive: " + fileName)
+	fmt.Println("")
 }

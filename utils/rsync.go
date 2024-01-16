@@ -77,7 +77,7 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 		log.Fatalf("Rsync command failed: %v", err)
 		return err
 	}
-	fmt.Println("Rsync command completed")
+	fmt.Println("✅ Rsync finished syncing the remote site directory to " + options.DestinationDir)
 	return nil
 }
 
