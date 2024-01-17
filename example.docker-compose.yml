@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  wp-auto-backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - ~/.ssh:/root/.ssh:ro # Provide the container access to an SSH key
+    environment:
+      - SITE_NAME=your-site-name
+      - SSH_USER=your-ssh-user
+      - SSH_HOST=your-site-name.ssh.wpengine.net
+      - REMOTE_SITE_DIR=/sites/your-site-name
+      - GOOGLE_CLIENT_SECRET_JSON_FILE=path/to/your/client_secret.json
+      - GOOGLE_DRIVE_FOLDER_ID=your-google-drive-folder-id
+      # Optional Configs
+      # - VERBOSE=true
+      # - BACKUP_ON_START=true
+      # - BACKUP_INTERVAL_MINUTES=3
+      # - SSH_KEY_PATH=~/.ssh/id_rsa
