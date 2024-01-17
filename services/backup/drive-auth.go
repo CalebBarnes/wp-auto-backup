@@ -15,6 +15,9 @@ import (
 )
 
 func initDriveService() (*drive.Service, error) {
+	fmt.Println("Waiting 10 seconds before reading the file...")
+	time.Sleep(10 * time.Second) // Wait for 10 seconds before proceeding
+
 	ctx := context.Background()
 
 	// Read the OAuth 2.0 credentials file
