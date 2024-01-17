@@ -15,9 +15,6 @@ import (
 )
 
 func initDriveService() (*drive.Service, error) {
-	fmt.Println("Waiting 10 seconds before reading the file...")
-	time.Sleep(10 * time.Second) // Wait for 10 seconds before proceeding
-
 	ctx := context.Background()
 
 	// Read the OAuth 2.0 credentials file
@@ -71,7 +68,7 @@ func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	var authCode string
 	_, err := fmt.Scan(&authCode)
 	if err != nil {
-		log.Fatalf("Unable to read authorization code: %v", err)
+		log.Fatalf("Unable to read authorization code: %v \n If you are running this in docker you should try running it directly once to generate your auth/token.json file and mount this in a volume at /app/auth", err)
 		return nil
 	}
 
