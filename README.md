@@ -6,6 +6,8 @@ Go-powered tool for scheduling WordPress server & database backups to Google Dri
 
 WP Auto Backup is designed to work with any WP server that has the WP CLI installed and an SSH key added to the WP server for secure file transfers with rsync.
 
+![image](https://github.com/CalebBarnes/wp-auto-backup/assets/24890515/012e4e52-f17a-4c24-a27a-a73fd38a7e38)
+
 ## Environment Variables
 
 To configure the tool, set the following environment variables:
