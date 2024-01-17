@@ -3,20 +3,23 @@ version: "3.8"
 services:
   wp-auto-backup:
     build:
-      context: .
+      context: ./wp-auto-backup # this should be the location of the wp-auto-backup repo, relative to this docker-compose file
       dockerfile: Dockerfile
     volumes:
-      - .:/app
+      - ~/temp_files:/app/temp_files # this is where the files downloaded with rsync are stored temporarily
+      - ~/auth:/app/auth # this volume is to persist the oauth2 token between server restarts
+      - ~/secret:/secret # this is just where my google client secret json file is located (see below for GOOGLE_CLIENT_SECRET_JSON_FILE env on where that is located)
       - ~/.ssh:/root/.ssh:ro # Provide the container access to an SSH key
     environment:
-      - SITE_NAME=your-site-name
-      - SSH_USER=your-ssh-user
-      - SSH_HOST=your-site-name.ssh.wpengine.net
-      - REMOTE_SITE_DIR=/sites/your-site-name
-      - GOOGLE_CLIENT_SECRET_JSON_FILE=path/to/your/client_secret.json
-      - GOOGLE_DRIVE_FOLDER_ID=your-google-drive-folder-id
+      - SITE_NAME=mywordpress # site name used to name the backup files / folder
+      - SSH_USER=mywordpress # ssh user
+      - SSH_HOST=mywordpress.something.com # your ssh server host
+      - REMOTE_SITE_DIR=/sites/mywordpress # location of the remote directory to download/backup
+      - GOOGLE_CLIENT_SECRET_JSON_FILE=/secret/client_secret.json # location of the google client secret json file
+      - GOOGLE_DRIVE_FOLDER_ID=your-google-drive-folder-id # ID of the google drive folder to store the backups in
       # Optional Configs
       # - VERBOSE=true
-      # - BACKUP_ON_START=true
+      - BACKUP_ON_START=true # creates a backup immediately
       # - BACKUP_INTERVAL_MINUTES=3
       # - SSH_KEY_PATH=~/.ssh/id_rsa
+    restart: unless-stopped
