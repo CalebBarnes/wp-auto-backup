@@ -43,24 +43,6 @@ To run the tool locally:
 1. **Install Go**: Ensure Go is installed on your local machine.
 2. **Clone the Repository**: Clone this repository to your machine.
 3. **Configure Environment Variables**: Create a `.env.local` file with the necessary environment variables.
-4. **Run the Application**: Execute the app with `go run main.go`. Alternatively, for development with hot reloading, use `air`.
-
-## Running in Production
-
-To deploy the tool in a production environment:
-
-1. **Build the Executable**: Compile the application into an executable using `go build`.
-2. **Deploy**: Transfer the executable to your production server.
-3. **Set Environment Variables**: Ensure all required environment variables are set in your server's environment.
-4. **Run the Executable**: Start the application on your server.
-
-## Running Locally
-
-To run the tool locally:
-
-1. **Install Go**: Ensure Go is installed on your local machine.
-2. **Clone the Repository**: Clone this repository to your machine.
-3. **Configure Environment Variables**: Create a `.env.local` file with the necessary environment variables.
 4. **First-Time Setup**:
    - Run the application using `go run main.go`.
    - Upon the first run, you'll be prompted with a link in the console.
@@ -82,3 +64,7 @@ To deploy the tool in a production environment:
    - Copy the authorization code from Google and input it back into the server console.
    - This will authenticate the application with Google Drive and save the token for future use.
 5. **Run the Executable**: Once set up, start the application on your server as needed.
+
+## Running in Docker Compose
+
+Refer to the example.docker-compose.yml file in this repo for an example of how to run the tool in a Docker container.
