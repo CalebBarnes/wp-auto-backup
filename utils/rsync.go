@@ -42,7 +42,7 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 	rsyncArgs := []string{
 		"-azL", // archive, compress, and dereference symlinks (copy the actual files instead of symlinks)
 		"--progress",
-		"-e", "ssh",
+		"-e", "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
 		options.User + "@" + options.Host + ":" + os.Getenv("REMOTE_SITE_DIR"),
 		options.DestinationDir,
 	}
