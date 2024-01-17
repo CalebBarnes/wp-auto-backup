@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -17,9 +18,19 @@ func initDriveService() (*drive.Service, error) {
 	ctx := context.Background()
 
 	// Read the OAuth 2.0 credentials file
-	b, err := os.ReadFile(os.Getenv("GOOGLE_CLIENT_SECRET_JSON_FILE"))
+	var b []byte
+	var err error
+	filePath := os.Getenv("GOOGLE_CLIENT_SECRET_JSON_FILE")
+	for i := 0; i < 5; i++ { // Retry up to 5 times
+		b, err = os.ReadFile(filePath)
+		if err == nil {
+			break // File read successfully
+		}
+		log.Printf("Attempt %d: Unable to read client secret file: %v", i+1, err)
+		time.Sleep(2 * time.Second) // Wait for 2 seconds before retrying
+	}
 	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
+		log.Fatalf("Unable to read client secret file after several attempts: %v", err)
 		return nil, err
 	}
 
