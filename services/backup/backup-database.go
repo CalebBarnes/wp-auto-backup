@@ -69,7 +69,8 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 	sess.Stdout = &stdoutBuf
 	err = sess.Run(cmd)
 	if err != nil {
-		log.Fatalf("failed to run command: %v", err)
+		log.Printf("failed to run command: %v\nError Type: %T\nError Details: %+v\n", err, err, err)
+		return
 	}
 
 	fmt.Println("📤 Uploading database dump to Google Drive...")
