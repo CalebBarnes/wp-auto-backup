@@ -58,18 +58,21 @@ func BackupDatabase(options BackupDatabaseOptions, timestamp string) {
 
 	fmt.Println("🔐 Connected with SSH to " + options.Host + ":" + options.Port)
 
-	cmd := "wp db export -" // outputs the sql dump to stdout
+	cmd := fmt.Sprintf("wp db export - --path='%v'", os.Getenv("REMOTE_SITE_DIR")) // outputs the sql dump to stdout
 	sess, err := conn.NewSession()
 	if err != nil {
 		log.Fatalf("unable to create session: %v", err)
 	}
 	defer sess.Close()
 
-	var stdoutBuf bytes.Buffer
+	var stdoutBuf, stderrBuf bytes.Buffer
 	sess.Stdout = &stdoutBuf
+	sess.Stderr = &stderrBuf
+
 	err = sess.Run(cmd)
 	if err != nil {
 		log.Printf("failed to run command: %v\nError Type: %T\nError Details: %+v\n", err, err, err)
+		log.Printf("stderr: %s\n", stderrBuf.String())
 		return
 	}
 
