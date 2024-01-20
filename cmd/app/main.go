@@ -93,6 +93,10 @@ func main() {
 }
 
 func runJob() {
+	if os.Getenv("SSH_PORT") == "" {
+		os.Setenv("SSH_PORT", "22")
+	}
+
 	println("")
 	fmt.Println("🧙 Starting scheduled backup job at " + time.Now().Format("2006-01-02 15:04:05"))
 	println("")
@@ -103,18 +107,22 @@ func runJob() {
 	currentTime := time.Now()
 	timestamp := currentTime.Format("2006-01-02-150405")
 
-	backupService.BackupDatabase(backupService.BackupDatabaseOptions{
-		User: user,
-		Host: host,
-		Port: "22",
-	}, timestamp)
+	if os.Getenv("DATABASE_BACKUPS_DISABLED") != "true" {
+		backupService.BackupDatabase(backupService.BackupDatabaseOptions{
+			User: user,
+			Host: host,
+			Port: os.Getenv("SSH_PORT"),
+		}, timestamp)
+	}
 
-	backupService.BackupFiles(backupService.BackupFilesOptions{
-		User:                   user,
-		Host:                   host,
-		DownloadDestinationDir: "temp_files",
-		ZipDestinationDir:      "backups",
-	}, timestamp)
+	if os.Getenv("FILE_BACKUPS_DISABLED") != "true" {
+		backupService.BackupFiles(backupService.BackupFilesOptions{
+			User:                   user,
+			Host:                   host,
+			DownloadDestinationDir: "temp_files",
+			ZipDestinationDir:      "backups",
+		}, timestamp)
+	}
 
 	println("")
 	fmt.Println("🧙‍♂️ Finished scheduled backup job at " + time.Now().Format("2006-01-02 15:04:05"))
