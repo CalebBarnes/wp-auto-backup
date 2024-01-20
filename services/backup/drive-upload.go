@@ -3,9 +3,11 @@ package backupService
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"mime"
 	"os"
 	"path/filepath"
+	"time"
 
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/googleapi"
@@ -62,6 +64,21 @@ func UploadFile(options UploadFileOptions) (*drive.File, error) {
 	}
 	defer localFile.Close()
 
+	// Get the file size and create a progress reader
+	fileInfo, err := localFile.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get file info: %v", err)
+	}
+	progressReader, err := UploadProgressReader(localFile, fileInfo.Size(), func(readSize int64, totalSize int64, speed float64) {
+		uploadedMB := float64(readSize) / (1024 * 1024)
+		totalMB := float64(totalSize) / (1024 * 1024)
+		percentage := float64(readSize) / float64(totalSize) * 100
+		fmt.Printf("📤 Uploading: %.2fMB/%.2fMB (%.2f%%) at %.2fMB/s\r", uploadedMB, totalMB, percentage, speed)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to create progress reader: %v", err)
+	}
+
 	// Detect the content type of the file
 	contentType := mime.TypeByExtension(filepath.Ext(options.Filepath))
 	if contentType == "" {
@@ -77,7 +94,7 @@ func UploadFile(options UploadFileOptions) (*drive.File, error) {
 		Name:    filename,
 		Parents: []string{options.FolderId},
 	}
-	uploadedFile, err := service.Files.Create(driveFile).Media(localFile, googleapi.ContentType(contentType)).Do()
+	uploadedFile, err := service.Files.Create(driveFile).Media(progressReader, googleapi.ContentType(contentType)).Do()
 	if err != nil {
 		return nil, fmt.Errorf("unable to create file: %v", err)
 	}
@@ -152,4 +169,33 @@ func UploadBuffer(options UploadBufferOptions) (*drive.File, error) {
 		fmt.Printf("Buffer content '%s' uploaded with ID: %s\n", options.Filename, file.Id)
 	}
 	return file, nil
+}
+
+type ReportFunc func(int64, int64, float64)
+type ProgressReader struct {
+	reader     io.Reader
+	totalSize  int64
+	readSize   int64
+	startTime  time.Time
+	reportFunc ReportFunc
+}
+
+func UploadProgressReader(reader io.Reader, totalSize int64, reportFunc ReportFunc) (io.Reader, error) {
+	return &ProgressReader{
+		reader:     reader,
+		totalSize:  totalSize,
+		startTime:  time.Now(),
+		reportFunc: reportFunc,
+	}, nil
+}
+
+func (pr *ProgressReader) Read(p []byte) (int, error) {
+	n, err := pr.reader.Read(p)
+	pr.readSize += int64(n)
+	if pr.reportFunc != nil {
+		elapsed := time.Since(pr.startTime).Seconds()
+		speed := float64(pr.readSize) / elapsed / (1024 * 1024) // Speed in MB/s
+		pr.reportFunc(pr.readSize, pr.totalSize, speed)
+	}
+	return n, err
 }
