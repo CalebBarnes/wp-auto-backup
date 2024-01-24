@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 )
 
@@ -19,7 +18,11 @@ type RsyncOptions struct {
 	Verbose        bool
 }
 
-const maxRetries = 3
+const (
+	initialDelay  = 5 * time.Second
+	maxRetries    = 5
+	backoffFactor = 2
+)
 
 func RsyncFromServer(options RsyncOptions) (err error) {
 	if options.User == "" {
@@ -42,28 +45,26 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 		}
 	}
 
+	var currentDelay time.Duration = initialDelay
+
 	for retries := 0; retries < maxRetries; retries++ {
 		if err := executeRsyncCommand(options); err != nil {
 			log.Printf("Rsync attempt #%d failed: %v", retries+1, err)
 
-			// Check for specific error message
-			if strings.Contains(err.Error(), "connection closed by remote server") {
-				log.Println("Connection closed by remote server, retrying...")
-				time.Sleep(5 * time.Second) // Wait for 5 seconds before retrying
-				continue
+			if retries < maxRetries-1 {
+				log.Printf("Waiting for %v before next retry...", currentDelay)
+				time.Sleep(currentDelay)
+				currentDelay *= backoffFactor
+			} else {
+				return fmt.Errorf("rsync command failed after %d retries: %w", maxRetries, err)
 			}
-
-			// If error is not the specific one or max retries reached
-			return err
+		} else {
+			fmt.Println("✅ Rsync finished syncing the remote site directory to " + options.DestinationDir)
+			return nil
 		}
-
-		// Success
-		break
 	}
 
-	fmt.Println("✅ Rsync finished syncing the remote site directory to " + options.DestinationDir)
-	return nil
-
+	return fmt.Errorf("rsync command failed after reaching max retries")
 }
 
 func printOutput(pipe io.ReadCloser) {
