@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"time"
 )
 
 type RsyncOptions struct {
@@ -16,6 +17,12 @@ type RsyncOptions struct {
 	DestinationDir string
 	Verbose        bool
 }
+
+const (
+	initialDelay  = 5 * time.Second
+	maxRetries    = 5
+	backoffFactor = 2
+)
 
 func RsyncFromServer(options RsyncOptions) (err error) {
 	if options.User == "" {
@@ -38,47 +45,26 @@ func RsyncFromServer(options RsyncOptions) (err error) {
 		}
 	}
 
-	rsyncCommand := "rsync"
-	rsyncArgs := []string{
-		"-azL", // archive, compress, and dereference symlinks (copy the actual files instead of symlinks)
-		"--progress",
-		"-e", "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
-		options.User + "@" + options.Host + ":" + os.Getenv("REMOTE_SITE_DIR"),
-		options.DestinationDir,
-	}
-	cmd := exec.Command(rsyncCommand, rsyncArgs...)
+	var currentDelay time.Duration = initialDelay
 
-	// fmt.Println("Executing command:", cmd.String())
+	for retries := 0; retries < maxRetries; retries++ {
+		if err := executeRsyncCommand(options); err != nil {
+			log.Printf("Rsync attempt #%d failed: %v", retries+1, err)
 
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatalf("Error creating stdout pipe: %v", err)
-		return err
-	}
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		log.Fatalf("Error creating stderr pipe: %v", err)
-		return err
+			if retries < maxRetries-1 {
+				log.Printf("Waiting for %v before next retry...", currentDelay)
+				time.Sleep(currentDelay)
+				currentDelay *= backoffFactor
+			} else {
+				return fmt.Errorf("rsync command failed after %d retries: %w", maxRetries, err)
+			}
+		} else {
+			fmt.Println("✅ Rsync finished syncing the remote site directory to " + options.DestinationDir)
+			return nil
+		}
 	}
 
-	fmt.Println("⚡️Connecting to " + options.Host + " with rsync.")
-	// fmt.Println("Executing command:", cmd.String())
-	if err := cmd.Start(); err != nil {
-		log.Fatalf("Error starting rsync command: %v", err)
-		return err
-	}
-
-	if options.Verbose {
-		go printOutput(stdoutPipe)
-	}
-	go printOutput(stderrPipe)
-
-	if err := cmd.Wait(); err != nil {
-		log.Fatalf("Rsync command failed: %v", err)
-		return err
-	}
-	fmt.Println("✅ Rsync finished syncing the remote site directory to " + options.DestinationDir)
-	return nil
+	return fmt.Errorf("rsync command failed after reaching max retries")
 }
 
 func printOutput(pipe io.ReadCloser) {
@@ -86,4 +72,40 @@ func printOutput(pipe io.ReadCloser) {
 	for scanner.Scan() {
 		fmt.Println(scanner.Text()) // Print each line of the output
 	}
+}
+
+func executeRsyncCommand(options RsyncOptions) error {
+	rsyncCommand := "rsync"
+	rsyncArgs := []string{
+		"-azL", // archive, compress, and dereference symlinks
+		"--progress",
+		"-e", "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null",
+		options.User + "@" + options.Host + ":" + os.Getenv("REMOTE_SITE_DIR"),
+		options.DestinationDir,
+	}
+	cmd := exec.Command(rsyncCommand, rsyncArgs...)
+
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("error creating stdout pipe: %w", err)
+	}
+	stderrPipe, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("error creating stderr pipe: %w", err)
+	}
+
+	if options.Verbose {
+		go printOutput(stdoutPipe)
+	}
+	go printOutput(stderrPipe)
+
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("error starting rsync command: %w", err)
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("rsync command failed: %w", err)
+	}
+
+	return nil
 }
